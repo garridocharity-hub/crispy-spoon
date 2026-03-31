@@ -6,9 +6,9 @@
   <title>Charity</title>
   <style>
     :root {
-      --bg: #f6f3ef;
-      --text: #2f2a28;
-      --muted: #7e756f;
+      --bg: #f5f1ec;
+--text: #2a2523;
+--muted: #8a7f78;
       --line: #ddd4cd;
       --accent: #c66a3d;
       --max: 760px;
@@ -72,8 +72,7 @@
     }
 
     .brand {
-      font-family: Georgia, "Times New Roman", serif;
-      font-style: italic;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;      font-style: italic;
       font-size: 1.1rem;
       color: var(--muted);
       letter-spacing: 0.02em;
@@ -104,6 +103,11 @@
 
     .hero h1,
     .section-title {
+  font-size: clamp(2.8rem, 12vw, 4.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 16px;
+}
       margin: 0 0 12px;
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 400;
@@ -122,8 +126,9 @@
       margin: 0;
     }
 
-    .section {
-      padding: 58px 0;
+   .section {
+  padding: 72px 0;
+}
       border-top: 1px solid var(--line);
       scroll-margin-top: 90px;
     }
@@ -170,8 +175,13 @@
       line-height: 1.08;
     }
 
-    .entry-excerpt {
-      margin: 0 0 12px;
+.entry-excerpt {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+  max-width: 32rem;
+}      margin: 0 0 12px;
       color: var(--muted);
       font-size: 1.02rem;
     }
@@ -195,17 +205,18 @@
     }
 
     .art-card img,
-    .place-card img {
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
-      background: #ebe4dd;
-      border-radius: 2px;
-    }
+.place-card img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #ebe4dd;
+  border-radius: 4px;
+  transition: transform 0.4s ease, opacity 0.3s ease;
+}
 
     .art-card:hover img,
-    .place-card:hover img {
-      transform: scale(1.01);
-    }
+.place-card:hover img {
+  transform: scale(1.02);
+}
 
     .caption {
       margin-top: 10px;
