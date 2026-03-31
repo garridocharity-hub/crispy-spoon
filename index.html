@@ -1,104 +1,385 @@
-import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import MasonryGrid from "../components/art/MasonryGrid";
-import Lightbox from "../components/art/Lightbox";
-import { useWindowSize } from "../hooks/useWindowSize";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Charity</title>
+  <style>
+    :root {
+      --bg: #f6f3ef;
+      --text: #2f2a28;
+      --muted: #7e756f;
+      --line: #ddd4cd;
+      --accent: #c66a3d;
+      --max: 760px;
+    }
 
-const ALL = "All";
+    * {
+      box-sizing: border-box;
+    }
 
-export default function Art() {
-  const [activeCategory, setActiveCategory] = useState(ALL);
-  const [lightboxIndex, setLightboxIndex] = useState(null);
+    html {
+      scroll-behavior: smooth;
+    }
 
-  const { data: artworks = [], isLoading } = useQuery({
-    queryKey: ["artworks"],
-    queryFn: () => base44.entities.Artwork.list("-created_date", 60),
-  });
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.65;
+    }
 
-  const { width } = useWindowSize();
-  const cols = width < 640 ? 1 : width < 1024 ? 2 : 3;
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-  const categories = useMemo(() => {
-    const cats = [...new Set(artworks.map((a) => a.category).filter(Boolean))];
-    return [ALL, ...cats];
-  }, [artworks]);
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
 
-  const filtered = useMemo(
-    () => activeCategory === ALL ? artworks : artworks.filter((a) => a.category === activeCategory),
-    [artworks, activeCategory]
-  );
+    .page {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+      padding: 0 22px 56px;
+    }
 
-  return (
-    <div className="min-h-screen pt-32 pb-24">
-      <div className="max-w-5xl mx-auto px-6">
+    .topbar {
+      position: sticky;
+      top: 0;
+      background: rgba(246, 243, 239, 0.94);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      border-bottom: 1px solid rgba(221, 212, 205, 0.65);
+    }
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-14"
-        >
-          <h1 className="font-serif text-4xl sm:text-5xl italic mb-3">Gallery</h1>
-          <p className="font-sans text-sm text-muted-foreground max-w-xs leading-relaxed">
-            Digital works. Click any piece to view full screen.
-          </p>
-        </motion.div>
+    .topbar-inner {
+      width: min(100%, calc(var(--max) + 44px));
+      margin: 0 auto;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
 
-        {/* Category filter */}
-        {categories.length > 1 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="flex flex-wrap gap-2 mb-12"
-          >
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`font-mono text-[10px] tracking-widest uppercase px-3 py-1.5 border transition-colors duration-200 ${
-                  activeCategory === cat
-                    ? "border-foreground text-foreground"
-                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </motion.div>
-        )}
+    .brand {
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
 
-        {/* Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-32">
-            <div className="w-4 h-4 border border-foreground/20 border-t-foreground/60 rounded-full animate-spin" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <p className="font-sans text-sm text-muted-foreground py-20 text-center">
-            No works here yet.
-          </p>
-        ) : (
-          <MasonryGrid
-            artworks={filtered}
-            onOpen={setLightboxIndex}
-            cols={cols}
-          />
-        )}
-      </div>
+    .nav {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
 
-      {/* Lightbox */}
-      {lightboxIndex !== null && (
-        <Lightbox
-          artworks={filtered}
-          index={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onPrev={() => setLightboxIndex((i) => Math.max(0, i - 1))}
-          onNext={() => setLightboxIndex((i) => Math.min(filtered.length - 1, i + 1))}
-        />
-      )}
+    .nav a {
+      font-size: 0.86rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 56px 0 46px;
+    }
+
+    .hero h1,
+    .section-title {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 0.95;
+    }
+
+    .hero h1 {
+      font-size: clamp(3.2rem, 14vw, 5.2rem);
+    }
+
+    .intro {
+      max-width: 31rem;
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .section {
+      padding: 54px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-title {
+      font-size: clamp(2.8rem, 12vw, 4.5rem);
+    }
+
+    .section-copy {
+      max-width: 34rem;
+      margin: 0 0 36px;
+      font-size: 1.08rem;
+      color: var(--muted);
+    }
+
+    .journal-list {
+      display: grid;
+      gap: 26px;
+    }
+
+    .journal-entry {
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .entry-meta {
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .entry-title {
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: clamp(1.9rem, 7vw, 2.7rem);
+      line-height: 1.08;
+    }
+
+    .entry-excerpt {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 1.04rem;
+    }
+
+    .entry-read {
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .art-card,
+    .place-card {
+      display: block;
+    }
+
+    .art-card img,
+    .place-card img {
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      background: #ebe4dd;
+    }
+
+    .caption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .music-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .track {
+      padding: 18px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .track-title {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: 1.6rem;
+    }
+
+    .track-note {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    audio {
+      width: 100%;
+      height: 42px;
+    }
+
+    .footer {
+      padding: 24px 0 10px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (min-width: 700px) {
+      .page {
+        padding-bottom: 80px;
+      }
+
+      .hero {
+        padding: 82px 0 66px;
+      }
+
+      .gallery {
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="#top" class="brand">journal</a>
+      <nav class="nav">
+        <a href="#journal" class="active">Journal</a>
+        <a href="#art">Art</a>
+        <a href="#music">Music</a>
+        <a href="#places">Places</a>
+      </nav>
     </div>
-  );
-}
+  </header>
+
+  <main class="page" id="top">
+    <section class="hero">
+      <h1>Charity</h1>
+      <p class="intro">
+        Writing is how I understand things. This is a quiet place for notes,
+        images, sound, and the places that stay with me.
+      </p>
+    </section>
+
+    <section class="section" id="journal">
+      <h2 class="section-title">Journal</h2>
+      <p class="section-copy">
+        Notes to myself — on art, sound, movement, and what it means to make
+        things slowly.
+      </p>
+
+      <div class="journal-list">
+        <article class="journal-entry">
+          <div class="entry-meta">Mar 2026 • Note</div>
+          <h3 class="entry-title">On making things slowly</h3>
+          <p class="entry-excerpt">
+            Every piece I finish takes longer than I think it should. I’ve
+            stopped apologizing for that.
+          </p>
+          <div class="entry-read">3 min read</div>
+        </article>
+
+        <article class="journal-entry">
+          <div class="entry-meta">Feb 2026 • Note</div>
+          <h3 class="entry-title">Some ideas arrive quietly</h3>
+          <p class="entry-excerpt">
+            Not everything needs urgency. Some things only make sense when I
+            let them stay unfinished for a while.
+          </p>
+          <div class="entry-read">2 min read</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="art">
+      <h2 class="section-title">Gallery</h2>
+      <p class="section-copy">
+        Digital works. Keep this curated. A few strong pieces will always feel
+        better than too much at once.
+      </p>
+
+      <div class="gallery">
+        <figure class="art-card">
+          <img src="https://via.placeholder.com/1200x900?text=Art+1" alt="Artwork 1" />
+          <figcaption class="caption">Untitled study I</figcaption>
+        </figure>
+
+        <figure class="art-card">
+          <img src="https://via.placeholder.com/1200x900?text=Art+2" alt="Artwork 2" />
+          <figcaption class="caption">Untitled study II</figcaption>
+        </figure>
+
+        <figure class="art-card">
+          <img src="https://via.placeholder.com/1200x900?text=Art+3" alt="Artwork 3" />
+          <figcaption class="caption">Motion and stillness</figcaption>
+        </figure>
+
+        <figure class="art-card">
+          <img src="https://via.placeholder.com/1200x900?text=Art+4" alt="Artwork 4" />
+          <figcaption class="caption">Afterimage</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="music">
+      <h2 class="section-title">Music</h2>
+      <p class="section-copy">
+        Sounds I’ve made. Each track is a mood, a moment, or the beginning of
+        something longer.
+      </p>
+
+      <div class="music-list">
+        <article class="track">
+          <h3 class="track-title">Draft I</h3>
+          <p class="track-note">A quiet loop for late hours.</p>
+          <audio controls>
+            <source src="" type="audio/mpeg" />
+          </audio>
+        </article>
+
+        <article class="track">
+          <h3 class="track-title">Night Window</h3>
+          <p class="track-note">Unfinished, but still worth hearing.</p>
+          <audio controls>
+            <source src="" type="audio/mpeg" />
+          </audio>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="places">
+      <h2 class="section-title">Places</h2>
+      <p class="section-copy">
+        Travel, remembered through fragments — light, distance, and the feeling
+        of being briefly elsewhere.
+      </p>
+
+      <div class="gallery">
+        <figure class="place-card">
+          <img src="https://via.placeholder.com/1200x900?text=Place+1" alt="Travel image 1" />
+          <figcaption class="caption">
+            This didn’t feel like home, but I needed it.
+          </figcaption>
+        </figure>
+
+        <figure class="place-card">
+          <img src="https://via.placeholder.com/1200x900?text=Place+2" alt="Travel image 2" />
+          <figcaption class="caption">
+            Some places stay with me longer than the trip itself.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Charity
+    </footer>
+  </main>
+</body>
+</html>
