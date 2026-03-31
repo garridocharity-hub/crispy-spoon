@@ -1,89 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Charity</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+import React, { useState, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import MasonryGrid from "../components/art/MasonryGrid";
+import Lightbox from "../components/art/Lightbox";
+import { useWindowSize } from "../hooks/useWindowSize";
 
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: #f5f5f5;
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-    }
+const ALL = "All";
 
-    section {
-      padding: 60px 20px;
-      max-width: 800px;
-      margin: auto;
-    }
+export default function Art() {
+  const [activeCategory, setActiveCategory] = useState(ALL);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
+  const { data: artworks = [], isLoading } = useQuery({
+    queryKey: ["artworks"],
+    queryFn: () => base44.entities.Artwork.list("-created_date", 60),
+  });
 
-    h2 {
-      font-size: 1.2em;
-      color: #888;
-      text-transform: lowercase;
-      margin-bottom: 20px;
-    }
+  const { width } = useWindowSize();
+  const cols = width < 640 ? 1 : width < 1024 ? 2 : 3;
 
-    .gallery img {
-      width: 100%;
-      margin-bottom: 20px;
-      border-radius: 6px;
-    }
+  const categories = useMemo(() => {
+    const cats = [...new Set(artworks.map((a) => a.category).filter(Boolean))];
+    return [ALL, ...cats];
+  }, [artworks]);
 
-    .entry {
-      margin-bottom: 20px;
-    }
+  const filtered = useMemo(
+    () => activeCategory === ALL ? artworks : artworks.filter((a) => a.category === activeCategory),
+    [artworks, activeCategory]
+  );
 
-    audio {
-      width: 100%;
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
+  return (
+    <div className="min-h-screen pt-32 pb-24">
+      <div className="max-w-5xl mx-auto px-6">
 
-<body>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-14"
+        >
+          <h1 className="font-serif text-4xl sm:text-5xl italic mb-3">Gallery</h1>
+          <p className="font-sans text-sm text-muted-foreground max-w-xs leading-relaxed">
+            Digital works. Click any piece to view full screen.
+          </p>
+        </motion.div>
 
-<section>
-  <h1>Charity</h1>
-  <p>digital art • sound • movement • thought</p>
-</section>
+        {/* Category filter */}
+        {categories.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="flex flex-wrap gap-2 mb-12"
+          >
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`font-mono text-[10px] tracking-widest uppercase px-3 py-1.5 border transition-colors duration-200 ${
+                  activeCategory === cat
+                    ? "border-foreground text-foreground"
+                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </motion.div>
+        )}
 
-<section>
-  <h2>journal</h2>
-  <div class="entry">I make things when I can’t explain what I feel.</div>
-  <div class="entry">Some days feel louder than others.</div>
-</section>
+        {/* Grid */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-32">
+            <div className="w-4 h-4 border border-foreground/20 border-t-foreground/60 rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="font-sans text-sm text-muted-foreground py-20 text-center">
+            No works here yet.
+          </p>
+        ) : (
+          <MasonryGrid
+            artworks={filtered}
+            onOpen={setLightboxIndex}
+            cols={cols}
+          />
+        )}
+      </div>
 
-<section>
-  <h2>art</h2>
-  <div class="gallery">
-    <img src="https://via.placeholder.com/800x600">
-    <img src="https://via.placeholder.com/800x600">
-  </div>
-</section>
-
-<section>
-  <h2>sound</h2>
-  <audio controls>
-    <source src="" type="audio/mpeg">
-  </audio>
-</section>
-
-<section>
-  <h2>places</h2>
-  <div class="gallery">
-    <img src="https://via.placeholder.com/800x600">
-    <p>this didn’t feel like home, but I needed it</p>
-  </div>
-</section>
-
-</body>
-</html>
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <Lightbox
+          artworks={filtered}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onPrev={() => setLightboxIndex((i) => Math.max(0, i - 1))}
+          onNext={() => setLightboxIndex((i) => Math.min(filtered.length - 1, i + 1))}
+        />
+      )}
+    </div>
+  );
+}
